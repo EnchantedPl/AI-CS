@@ -10,13 +10,6 @@
 - 基于 **Harness Engineering** 思路，通过 **RAG、语义缓存、流程编排、Memory、Token 预算控制与成本治理、限流降级、分层回放与可观测体系**，系统性治理 AI 应用中的不确定性。
 - 聚焦 **质量、成本、性能与风险控制**，体现 AI Agent 在真实生产场景中的工程化落地能力。
 
-## 你能在这个仓库看到什么
-
-- **架构图 + 业务 Workflow**：展示模块协同和意图驱动主链路。
-- **可运行后端**：基于 FastAPI + LangGraph 的最小可运行 AI 客服后端。
-- **观测与评测**：Prometheus / Grafana / LangSmith / 分层回放归因。
-- **生产治理能力**：语义缓存、Context Engineering、Checkpoint / HITL、限流降级、版本控制。
-
 ## 背景与目标
 
 | 维度 | 内容 |
