@@ -58,16 +58,17 @@
 
 ## 技术栈
 
-| 类别 | 选型 |
+| 层次 | 选型 |
 |------|------|
-| 语言 / 框架 | Python 3.11+、**FastAPI**、**Uvicorn** |
-| 编排 | **LangGraph** |
-| LLM / Embedding | **LiteLLM** + **Ollama** + **LlamaIndex**<br/>LLM：本地 `ollama/qwen2.5:0.5b`，云端 `openai/qwen-turbo`<br/>Embedding：本地 `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`，云端 `openai/text-embedding-v3` |
-| 存储 | **Postgres + pgvector**、**Redis** |
-| 观测 | **Prometheus**（`/metrics`）、**Grafana**（仪表盘 JSON）、可选 **LangSmith** |
-| 部署 | Docker Compose（`deploy/docker-compose.yml`） |
+| 应用层 | Python 3.11+、**FastAPI**、**Uvicorn**、**Pydantic** |
+| Agent / 编排层 | **LangGraph**、**LiteLLM**、**LlamaIndex** |
+| LLM 层 | 本地：`ollama/qwen2.5:0.5b`；云端：`openai/qwen-turbo` |
+| Embedding 层 | 本地：`sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`；云端：`openai/text-embedding-v3` |
+| 数据与状态层 | **Postgres**、**pgvector**、**Redis** |
+| 观测与评测层 | **Prometheus**（`/metrics`）、**Grafana**、**LangSmith**（可选）、**Layered Replay** |
+| 工程与部署层 | Docker Compose（`deploy/docker-compose.yml`） |
 
-**Harness Engineering 核心点**：以 **RAG、Semantic Cache、Context Engineering、流程编排、Memory 管理** 为能力底座；以 **成本控制、限流降级、Checkpoint、版本控制、分层回放、可观测性** 作为治理抓手。
+**关键工程能力**：**Harness Engineering、Hybrid RAG、Semantic Cache、Context Engineering、流程编排、Memory 管理、Token 预算控制与成本治理、限流降级、Checkpoint / HITL、全流程版本控制、可观测与回放归因**。
 
 依赖见 [`requirements.txt`](requirements.txt)。
 
