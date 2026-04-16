@@ -1,21 +1,21 @@
 # 智能客服（AI-CS）
 
-**定位**：面向生产的智能客服后端——有业务流程、治理边界与评估闭环；强调**可观测、可控制、可恢复、可迭代**。
+**定位**：面向生产的智能客服 **AI Agent** 后端，具备业务流程、治理边界与评估闭环；强调**可观测、可控制、可恢复、可迭代**。
 
 ---
 
 ## 快速概览
 
 - 面向智能客服场景的生产级 **AI Agent** 后端，覆盖 FAQ、商品咨询、售后处理及人工介入等核心业务流程。
-- 基于 **Harness Engineering** 思路，通过 **RAG、语义缓存、流程编排、Memory、Token 预算控制与成本治理、限流降级、分层回放与可观测体系**，系统性治理 AI 应用中的不确定性。
+- 基于 **Harness Engineering** 思路，通过 **RAG、语义缓存、流程编排、记忆管理、Token 预算控制与成本治理、限流降级、分层回放与可观测体系**，系统性治理 AI 应用中的不确定性。
 - 聚焦 **质量、成本、性能与风险控制**，体现 AI Agent 在真实生产场景中的工程化落地能力。
 
 ## 背景与目标
 
 | 维度 | 内容 |
 |------|------|
-| **业务痛点** | 纯 LLM 方案难控成本与延迟；RAG/Memory/Tool 叠加后故障难定位；高风险动作需要合规与人审。 |
-| **本项目解决** | 用 **Harness Engineering** 把不确定性收口为可运营问题：意图分支、策略与降级、Checkpoint + HITL、指标与离线回放归因。 |
+| **业务痛点** | 纯 LLM 方案难控成本与延迟；RAG / 记忆 / 工具调用叠加后故障难定位；高风险动作需要合规与人审。 |
+| **本项目解决** | 用 **Harness Engineering** 把不确定性收口为可运营问题：意图分支、策略与降级、检查点 + HITL、指标与离线回放归因。 |
 | **目标 SLO（示例）** | **质量**：核心链路成功率 > 85%，高风险场景必须进入 `NEED_HUMAN` 闭环；**性能**：`/chat` p95 < 5s，5xx < 1%；**成本**：单会话成本可解释，重复问题优先走缓存与低成本路径。 |
 
 ---
@@ -46,11 +46,11 @@
 |------|----------------|------|
 | Gateway & Session | `app/api/routes_chat.py` | 接入、限流/并发闸、注入检测、指标、工作流入口 |
 | Policy & Runtime | `app/stability/runtime_policy.py` | 路由分桶、优先级、**L0/L1/L2** 降级 |
-| Orchestrator | `app/graph/workflows/minimal_chat.py` | LangGraph 式编排、意图分支、工具/MCP、**Checkpoint / HITL** |
-| Context Builder | `app/memory/context_builder.py` | Token 预算下拼装 policy / RAG / memory / tool |
+| Orchestrator | `app/graph/workflows/minimal_chat.py` | LangGraph 式编排、意图分支、工具 / MCP、**检查点 / HITL** |
+| Context Builder | `app/memory/context_builder.py` | 在 Token 预算内拼装 policy / RAG / 记忆 / tool facts |
 | RAG & World | `app/rag/`，`app/mcp_mock/`，`app/skills/` | 混合检索、（Mock）副作用工具、业务技能 |
-| Cache & Cost | `app/cache/` | 精确/语义缓存、embedding 运行时 |
-| Memory & State | `app/memory/` | 会话/长期记忆、写入门禁 |
+| Cache & Cost | `app/cache/` | 精确缓存、语义缓存、Embedding 运行时 |
+| Memory & State | `app/memory/` | 会话记忆、长期记忆、写入门禁 |
 | Observability | `app/main.py`，`app/api/routes_chat.py` | JSON 访问日志、`/metrics`、可选 LangSmith |
 | Replay / Eval | `scripts/run_layered_replay.py` 等 | 分层回放、归因报告、检索对比 |
 
@@ -61,14 +61,14 @@
 | 层次 | 选型 |
 |------|------|
 | 应用层 | Python 3.11+、**FastAPI**、**Uvicorn**、**Pydantic** |
-| Agent / 编排层 | **LangGraph**、**LiteLLM**、**LlamaIndex** |
+| AI Agent 编排层 | **LangGraph**、**LiteLLM**、**LlamaIndex** |
 | LLM 层 | 本地：`ollama/qwen2.5:0.5b`；云端：`openai/qwen-turbo` |
 | Embedding 层 | 本地：`sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`；云端：`openai/text-embedding-v3` |
 | 数据与状态层 | **Postgres**、**pgvector**、**Redis** |
-| 观测与评测层 | **Prometheus**（`/metrics`）、**Grafana**、**LangSmith**（可选）、**Layered Replay** |
+| 观测与评测层 | **Prometheus**（`/metrics`）、**Grafana**、**LangSmith**（可选）、分层回放 |
 | 工程与部署层 | Docker Compose（`deploy/docker-compose.yml`） |
 
-**关键工程能力**：**Harness Engineering、Hybrid RAG、Semantic Cache、Context Engineering、流程编排、Memory 管理、Token 预算控制与成本治理、限流降级、Checkpoint / HITL、全流程版本控制、可观测与回放归因**。
+**关键工程能力**：**Harness Engineering、Hybrid RAG、Semantic Cache、Context Engineering、流程编排、记忆管理、Token 预算控制与成本治理、限流降级、检查点 / HITL、全流程版本控制、可观测与回放归因**。
 
 依赖见 [`requirements.txt`](requirements.txt)。
 
