@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+pydantic
+prometheus-client
+langgraph
+psycopg[binary]
+llama-index
+llama-index-embeddings-huggingface
+sentence-transformers
+datasets
+litellm
+redis
+langsmith
+langgraph-cli[inmem]

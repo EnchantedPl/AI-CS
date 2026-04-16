@@ -1,0 +1,23 @@
+{
+  "skill_name": "refund_policy_skill",
+  "version": "v1",
+  "when_to_use": "需要判断退款资格、风险等级、是否需要人工审批时",
+  "inputs_schema": {
+    "type": "object",
+    "properties": {
+      "query": {"type": "string"},
+      "tool_result": {"type": "object"}
+    },
+    "required": ["query", "tool_result"]
+  },
+  "outputs_schema": {
+    "type": "object",
+    "properties": {
+      "eligible": {"type": "boolean"},
+      "risk_level": {"type": "string"},
+      "manual_required": {"type": "boolean"},
+      "reasons": {"type": "array", "items": {"type": "string"}},
+      "confidence": {"type": "number"}
+    }
+  }
+}

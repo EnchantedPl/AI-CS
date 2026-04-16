@@ -1,0 +1,21 @@
+{
+  "skill_name": "aftersales_plan_skill",
+  "version": "v1",
+  "when_to_use": "在已有退款资格评估后，需要生成可执行步骤与对客话术时",
+  "inputs_schema": {
+    "type": "object",
+    "properties": {
+      "policy_eval": {"type": "object"},
+      "tool_result": {"type": "object"}
+    },
+    "required": ["policy_eval", "tool_result"]
+  },
+  "outputs_schema": {
+    "type": "object",
+    "properties": {
+      "steps": {"type": "array", "items": {"type": "string"}},
+      "eta": {"type": "string"},
+      "customer_message": {"type": "string"}
+    }
+  }
+}

@@ -1,0 +1,898 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "graphTooltip": 0,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "panels": [],
+      "title": "A) 核心运营看板（北极星 + 红线）",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.7
+              },
+              {
+                "color": "green",
+                "value": 0.9
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 1
+      },
+      "id": 2,
+      "targets": [
+        {
+          "expr": "(sum(increase(ai_cs_layer_chat_requests_total{status=\"AUTO_DRAFT\"}[$__range])) or vector(0)) / clamp_min((sum(increase(ai_cs_layer_chat_requests_total[$__range])) or vector(0)), 1)",
+          "refId": "A"
+        }
+      ],
+      "title": "端到端成功率（E2E）",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 3
+              },
+              {
+                "color": "red",
+                "value": 6
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 1
+      },
+      "id": 3,
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(ai_cs_layer_chat_latency_seconds_bucket[5m])) by (le))",
+          "refId": "A"
+        }
+      ],
+      "title": "E2E P95 延迟",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.7
+              },
+              {
+                "color": "green",
+                "value": 0.9
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 1
+      },
+      "id": 4,
+      "targets": [
+        {
+          "expr": "(sum(increase(ai_cs_workflow_resume_closed_loop_total{success=\"true\"}[$__range])) or vector(0)) / clamp_min((sum(increase(ai_cs_workflow_resume_closed_loop_total[$__range])) or vector(0)), 1)",
+          "refId": "A"
+        }
+      ],
+      "title": "NEED_HUMAN 闭环率",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.95
+              },
+              {
+                "color": "green",
+                "value": 0.999
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 1
+      },
+      "id": 5,
+      "targets": [
+        {
+          "expr": "(sum(increase(ai_cs_mcp_high_risk_intercept_total{intercepted=\"true\"}[$__range])) or vector(0)) / clamp_min((sum(increase(ai_cs_mcp_high_risk_intercept_total[$__range])) or vector(0)), 1)",
+          "refId": "A"
+        }
+      ],
+      "title": "高风险先审批后执行合规率",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.01
+              },
+              {
+                "color": "red",
+                "value": 0.03
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 6
+      },
+      "id": 6,
+      "targets": [
+        {
+          "expr": "(sum(increase(ai_cs_requests_total{path=\"/chat\",status_code=~\"5..\"}[$__range])) or vector(0)) / clamp_min((sum(increase(ai_cs_requests_total{path=\"/chat\"}[$__range])) or vector(0)), 1)",
+          "refId": "A"
+        }
+      ],
+      "title": "5xx 错误率",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "color": {
+            "mode": "continuous-GrYlRd"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 6
+      },
+      "id": 7,
+      "targets": [
+        {
+          "expr": "(((sum(increase(ai_cs_context_token_estimated_sum{type=\"total\"}[$__range])) or vector(0)) * 0.000002) + ((sum(increase(ai_cs_layer_mcp_call_total[$__range])) or vector(0)) * 0.01)) / clamp_min((sum(increase(ai_cs_layer_chat_requests_total[$__range])) or vector(0)), 1)",
+          "refId": "A"
+        }
+      ],
+      "title": "单会话平均成本（估算）",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.15
+              },
+              {
+                "color": "red",
+                "value": 0.35
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 6
+      },
+      "id": 8,
+      "targets": [
+        {
+          "expr": "(sum(increase(ai_cs_handoff_event_total[$__range])) or vector(0)) / clamp_min((sum(increase(ai_cs_layer_chat_requests_total[$__range])) or vector(0)), 1)",
+          "refId": "A"
+        }
+      ],
+      "title": "转人工率",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.2
+              },
+              {
+                "color": "red",
+                "value": 0.4
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 6
+      },
+      "id": 9,
+      "targets": [
+        {
+          "expr": "(sum(increase(ai_cs_user_satisfaction_total{satisfaction=\"unsatisfied\"}[$__range])) or vector(0)) / clamp_min((sum(increase(ai_cs_user_satisfaction_total{satisfaction=~\"satisfied|unsatisfied\"}[$__range])) or vector(0)), 1)",
+          "refId": "A"
+        }
+      ],
+      "title": "用户负反馈率",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.2
+              },
+              {
+                "color": "red",
+                "value": 0.4
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 11
+      },
+      "id": 10,
+      "targets": [
+        {
+          "expr": "(sum(increase(ai_cs_user_follow_up_quote_after_resolved_total[$__range])) or vector(0)) / clamp_min((sum(increase(ai_cs_user_satisfaction_total{satisfaction=\"satisfied\",source=\"user_feedback\"}[$__range])) or vector(0)), 1)",
+          "refId": "A"
+        }
+      ],
+      "title": "复开率 Reopen（引用已解决后轮次）",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.5
+              },
+              {
+                "color": "green",
+                "value": 0.75
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 11
+      },
+      "id": 11,
+      "targets": [
+        {
+          "expr": "(sum(increase(ai_cs_user_satisfaction_total{satisfaction=\"satisfied\"}[$__range])) or vector(0)) / clamp_min((sum(increase(ai_cs_layer_chat_requests_total[$__range])) or vector(0)), 1)",
+          "refId": "A"
+        }
+      ],
+      "title": "一次解决率 FCR（Proxy）",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.03
+              },
+              {
+                "color": "red",
+                "value": 0.08
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 11
+      },
+      "id": 27,
+      "targets": [
+        {
+          "expr": "(sum(increase(ai_cs_budget_limit_total{limited=\"true\"}[$__range])) or vector(0)) / clamp_min((sum(increase(ai_cs_priority_request_total[$__range])) or vector(0)), 1)",
+          "refId": "A"
+        }
+      ],
+      "title": "预算限流触发率（RPM/TPM）",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.1
+              },
+              {
+                "color": "red",
+                "value": 0.2
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 11
+      },
+      "id": 28,
+      "targets": [
+        {
+          "expr": "(sum(increase(ai_cs_degrade_level_total{degrade_level=\"L2\"}[$__range])) or vector(0)) / clamp_min((sum(increase(ai_cs_degrade_level_total[$__range])) or vector(0)), 1)",
+          "refId": "A"
+        }
+      ],
+      "title": "L2 降级占比",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "id": 20,
+      "panels": [],
+      "title": "B) 智能客服业务指标（重点关注）",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.5
+              },
+              {
+                "color": "green",
+                "value": 0.75
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 17
+      },
+      "id": 21,
+      "targets": [
+        {
+          "expr": "(sum(increase(ai_cs_user_satisfaction_total{satisfaction=\"satisfied\"}[$__range])) or vector(0)) / clamp_min((sum(increase(ai_cs_layer_chat_requests_total[$__range])) or vector(0)), 1)",
+          "refId": "A"
+        }
+      ],
+      "title": "FCR（一次解决率，Proxy）",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.15
+              },
+              {
+                "color": "red",
+                "value": 0.35
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 17
+      },
+      "id": 22,
+      "targets": [
+        {
+          "expr": "(sum(increase(ai_cs_handoff_event_total[$__range])) or vector(0)) / clamp_min((sum(increase(ai_cs_layer_chat_requests_total[$__range])) or vector(0)), 1)",
+          "refId": "A"
+        }
+      ],
+      "title": "转人工率",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.95
+              },
+              {
+                "color": "green",
+                "value": 0.999
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 17
+      },
+      "id": 23,
+      "targets": [
+        {
+          "expr": "(sum(increase(ai_cs_mcp_high_risk_intercept_total{intercepted=\"true\"}[$__range])) or vector(0)) / clamp_min((sum(increase(ai_cs_mcp_high_risk_intercept_total[$__range])) or vector(0)), 1)",
+          "refId": "A"
+        }
+      ],
+      "title": "高风险审批准确率（Proxy）",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 2.5
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 22
+      },
+      "id": 24,
+      "targets": [
+        {
+          "expr": "(sum(increase(ai_cs_request_latency_seconds_sum{method=\"POST\",path=\"/chat\"}[$__range])) or vector(0)) / clamp_min((sum(increase(ai_cs_request_latency_seconds_count{method=\"POST\",path=\"/chat\"}[$__range])) or vector(0)), 1)",
+          "refId": "A"
+        }
+      ],
+      "title": "平均处理时长 AHT",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.6
+              },
+              {
+                "color": "green",
+                "value": 0.8
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 22
+      },
+      "id": 25,
+      "targets": [
+        {
+          "expr": "(sum(increase(ai_cs_user_satisfaction_total{satisfaction=\"satisfied\"}[$__range])) or vector(0)) / clamp_min((sum(increase(ai_cs_user_satisfaction_total{satisfaction=~\"satisfied|unsatisfied\"}[$__range])) or vector(0)), 1)",
+          "refId": "A"
+        }
+      ],
+      "title": "用户满意度 CSAT",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.2
+              },
+              {
+                "color": "red",
+                "value": 0.4
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 22
+      },
+      "id": 26,
+      "targets": [
+        {
+          "expr": "(sum(increase(ai_cs_user_follow_up_quote_after_resolved_total[$__range])) or vector(0)) / clamp_min((sum(increase(ai_cs_user_satisfaction_total{satisfaction=\"satisfied\",source=\"user_feedback\"}[$__range])) or vector(0)), 1)",
+          "refId": "A"
+        }
+      ],
+      "title": "复开率 Reopen（引用已解决后轮次）",
+      "type": "stat"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": [
+    "ai-cs",
+    "kpi",
+    "ops",
+    "business"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timezone": "",
+  "title": "AI-CS Core Ops & Business KPI",
+  "uid": "ai-cs-core-ops-business-kpi",
+  "version": 2
+}
+

@@ -1,0 +1,21 @@
+.env
+.env.local
+*.pem
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.idea/
+.vscode/
+*.log
+.DS_Store
+.langgraph_api/
+
+# eval/demo artifacts: keep only curated markdown samples
+data/eval/reports/*
+!data/eval/reports/
+!data/eval/reports/layered_replay_attribution_report.md
+!data/eval/reports/replay_compare_report.md
+!data/eval/reports/aftersales_complex_eval.md

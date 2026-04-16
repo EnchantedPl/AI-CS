@@ -1,0 +1,10 @@
+{
+  "python_version": "3.11",
+  "dependencies": [
+    "."
+  ],
+  "graphs": {
+    "chat_workflow": "./app/graph/workflows/minimal_chat.py:WORKFLOW"
+  },
+  "env": "./.env"
+}

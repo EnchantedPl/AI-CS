@@ -1,0 +1,1797 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>智能客服</title>
+  <style>
+    :root {
+      --bg: #f2f2f7;
+      --bg-soft: #f7f7fb;
+      --panel: #ffffff;
+      --line: #e5e5ea;
+      --line-strong: #d1d1d6;
+      --text: #1c1c1e;
+      --text-2: #2c2c2e;
+      --muted: #8e8e93;
+      --brand: #007aff;
+      --brand-deep: #0071eb;
+      --brand-soft: #eaf3ff;
+      --user: #dff0ff;
+      --ai: #ffffff;
+      --agent: #efeefe;
+      --ok: #007aff;
+      --danger: #8e8e93;
+      --warn: #8e8e93;
+      --radius-xs: 10px;
+      --radius-sm: 12px;
+      --radius-md: 16px;
+      --radius-lg: 18px;
+      --shadow-1: 0 1px 1px rgba(0, 0, 0, 0.04);
+      --shadow-2: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .phone {
+      width: min(420px, 100vw);
+      height: 100vh;
+      margin: 0 auto;
+      background: var(--panel);
+      border-left: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      overflow: hidden;
+    }
+    .topbar {
+      padding: max(10px, env(safe-area-inset-top)) 12px 10px;
+      background: rgba(249, 249, 252, 0.82);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--line);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    .run-tag {
+      font-size: 11px;
+      font-weight: 500;
+      color: #3a3a3c;
+      border: 1px solid #d9d9df;
+      border-radius: 999px;
+      padding: 1px 8px;
+      background: rgba(255, 255, 255, 0.72);
+    }
+    .quick-faq {
+      border-bottom: 1px solid var(--line);
+      background: #f8f9fc;
+      padding: 8px 10px 10px;
+    }
+    .quick-faq-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #5b6473;
+      margin-bottom: 6px;
+    }
+    .quick-faq-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .mode-tag {
+      font-size: 11px;
+      padding: 1px 7px;
+      border-radius: 999px;
+      border: 1px solid #d5dbe7;
+      background: #fff;
+      color: #5d6778;
+      line-height: 1.3;
+    }
+    .mode-tag.on {
+      border-color: #b7ebc6;
+      background: #ecfdf3;
+      color: #1f7a44;
+    }
+    .mode-tag.off {
+      border-color: #f5d3d3;
+      background: #fff1f1;
+      color: #a63b3b;
+    }
+    .quick-faq-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .faq-chip {
+      border: 1px solid #dde3ef;
+      background: #fff;
+      color: #3d4656;
+      border-radius: 10px;
+      font-size: 12px;
+      min-height: 30px;
+      padding: 4px 8px;
+      text-align: left;
+      cursor: pointer;
+    }
+    .faq-chip:hover { opacity: 0.92; }
+    .chat {
+      overflow: auto;
+      padding: 12px;
+      background: var(--bg-soft);
+      scroll-behavior: smooth;
+      scrollbar-width: thin;
+      scrollbar-color: #cfd7e8 transparent;
+    }
+    .chat::-webkit-scrollbar { width: 6px; }
+    .chat::-webkit-scrollbar-thumb { background: #cfd7e8; border-radius: 999px; }
+    .chat::-webkit-scrollbar-track { background: transparent; }
+    .msg {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      margin: 8px 0;
+      animation: msgIn 0.18s ease;
+    }
+    .msg + .msg { margin-top: 6px; }
+    .msg-main {
+      max-width: 68%;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .msg-meta {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.2;
+      padding: 0 2px;
+    }
+    .msg.ai .msg-meta,
+    .msg.agent .msg-meta { text-align: left; }
+    .msg.user .msg-meta { text-align: right; }
+    @keyframes msgIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #fff;
+      font-weight: 700;
+      flex: 0 0 auto;
+      margin-top: 2px;
+      box-shadow: var(--shadow-1);
+    }
+    .bubble {
+      max-width: 100%;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-md);
+      background: #fff;
+      padding: 9px 10px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 14px;
+      color: var(--text-2);
+      box-shadow: var(--shadow-1);
+      position: relative;
+    }
+    .bubble.bubble-quoteable {
+      padding-right: 56px;
+    }
+    .bubble .quote-action-btn {
+      position: absolute;
+      right: 8px;
+      top: 8px;
+      border: 1px solid #c8d7ee;
+      background: rgba(255, 255, 255, 0.96);
+      color: #3367b2;
+      border-radius: 999px;
+      min-height: 24px;
+      padding: 0 10px;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.12s ease;
+      box-shadow: 0 1px 2px rgba(17, 43, 83, 0.08);
+      z-index: 2;
+    }
+    .bubble.bubble-quoteable:hover .quote-action-btn,
+    .bubble.bubble-quoteable:focus-within .quote-action-btn {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .msg.user .bubble .quote-action-btn { display: none; }
+    .bubble.approve-bubble.bubble-quoteable,
+    .bubble.escalate-bubble.bubble-quoteable {
+      padding-right: 0;
+    }
+    .bubble.approve-bubble .quote-action-btn,
+    .bubble.escalate-bubble .quote-action-btn {
+      top: -8px;
+      right: 0;
+    }
+    .msg-quote-block {
+      border-left: 3px solid rgba(255, 255, 255, 0.72);
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 5px 8px;
+      margin-bottom: 6px;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .msg-quote-title {
+      font-weight: 600;
+      opacity: 0.95;
+      margin-bottom: 2px;
+    }
+    .msg-quote-text {
+      opacity: 0.9;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      white-space: pre-wrap;
+    }
+    .msg.ai .msg-quote-block,
+    .msg.agent .msg-quote-block {
+      border-left-color: #9fb9e8;
+      background: #f2f6fe;
+    }
+    .msg.ai .msg-quote-title,
+    .msg.agent .msg-quote-title {
+      color: #3a5f9b;
+    }
+    .bubble-foot {
+      margin-top: 8px;
+      display: flex;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .feedback-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+      max-width: 320px;
+    }
+    .feedback-btn {
+      border: 1px solid #d8deea;
+      border-radius: 999px;
+      background: #fff;
+      color: #5c6577;
+      font-size: 13px;
+      min-height: 34px;
+      padding: 0 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .feedback-btn.primary {
+      border-color: #d8deea;
+      color: #5c6577;
+      background: #fff;
+    }
+    .fb-icon {
+      color: #99a3b6;
+      font-size: 12px;
+      line-height: 1;
+      margin-top: -1px;
+    }
+    .feedback-btn.active {
+      border-color: #b7d4ff;
+      color: #1765c9;
+      background: #edf5ff;
+      font-weight: 600;
+    }
+    .feedback-btn:disabled {
+      opacity: 0.62;
+      cursor: not-allowed;
+    }
+    .bubble.bubble-rich {
+      white-space: normal;
+    }
+    .bubble.approve-bubble,
+    .bubble.escalate-bubble {
+      padding: 0;
+      border: none;
+      background: transparent;
+      box-shadow: none;
+      max-width: 100%;
+    }
+    .escalate-card {
+      border: 1px solid #e8edf6;
+      border-radius: 12px;
+      background: #fbfcff;
+      padding: 10px 12px;
+      width: min(100%, 360px);
+      box-shadow: var(--shadow-1);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px 12px;
+      align-items: center;
+    }
+    .escalate-title {
+      color: #556078;
+      font-size: 13px;
+      line-height: 1.45;
+      margin-bottom: 0;
+    }
+    .escalate-link {
+      border: none;
+      background: transparent;
+      color: #2f6fe4;
+      font-size: 16px;
+      font-weight: 600;
+      padding: 0;
+      cursor: pointer;
+      text-decoration: none;
+      justify-self: end;
+    }
+    .escalate-link:hover { opacity: 0.9; }
+    .escalate-link:disabled {
+      opacity: 0.62;
+      cursor: not-allowed;
+    }
+    .msg.user {
+      justify-content: flex-start;
+      flex-direction: row-reverse;
+      gap: 8px;
+    }
+    .msg.user .avatar {
+      display: inline-flex;
+      background: linear-gradient(180deg, #cfd8e8 0%, #b8c4da 100%);
+      color: #ffffff;
+      border: 1px solid #b5c2d7;
+      box-shadow: none;
+    }
+    .msg.user .msg-main {
+      margin-left: 0;
+      margin-right: 0;
+      align-items: flex-end;
+      max-width: 58%;
+    }
+    .msg.user .bubble {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #fff;
+      border-top-right-radius: 8px;
+      box-shadow: 0 1px 1px rgba(0, 122, 255, 0.2);
+    }
+    .msg.ai .avatar { background: #24b09a; }
+    .msg.ai .bubble {
+      background: var(--ai);
+      border-top-left-radius: 8px;
+    }
+    .msg.agent .avatar {
+      background: linear-gradient(180deg, #a98aff 0%, #8f6bf1 100%);
+      border: 1px solid #8e6be6;
+      box-shadow: none;
+    }
+    .msg.agent .bubble {
+      background: var(--agent);
+      border-color: #ddd3f7;
+      border-top-left-radius: 8px;
+    }
+    .msg.ai .msg-main,
+    .msg.agent .msg-main {
+      align-items: flex-start;
+      max-width: 68%;
+    }
+    .msg.user .msg-main {
+      align-items: flex-end;
+    }
+
+    .stage-card {
+      border: 1px solid #e9edf4;
+      border-radius: 10px;
+      margin-top: 6px;
+      background: #fbfcff;
+      max-width: 88%;
+      padding: 4px 8px;
+      white-space: normal;
+    }
+    .stage-mini {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 7px;
+      min-height: 28px;
+    }
+    .stage-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: #4a5872;
+      line-height: 1.3;
+      white-space: nowrap;
+    }
+    .stage-preview {
+      font-size: 11px;
+      color: #6f7b92;
+      margin-top: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 150px;
+    }
+    .stage-link {
+      border: none;
+      background: transparent;
+      color: #4f7dd8;
+      font-size: 11px;
+      line-height: 1.2;
+      padding: 2px 0;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .stage-link:hover { opacity: 0.86; }
+    .stage-link:active { transform: translateY(1px); }
+    .stage-sheet-mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.22);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 80;
+      padding: 14px;
+    }
+    .stage-sheet-mask.open { display: flex; }
+    .stage-sheet {
+      width: min(360px, 92vw);
+      max-height: 76vh;
+      background: #fff;
+      border-radius: 14px;
+      border: 1px solid #e7ebf3;
+      overflow: hidden;
+      box-shadow: 0 12px 28px rgba(16, 24, 40, 0.18);
+    }
+    .stage-sheet-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-bottom: 1px solid #eef1f6;
+      font-size: 13px;
+      font-weight: 700;
+      color: #39465d;
+      background: #fafbfe;
+    }
+    .stage-sheet-close {
+      border: none;
+      background: transparent;
+      color: #6f7f98;
+      font-size: 15px;
+      cursor: pointer;
+      padding: 0 2px;
+    }
+    .stage-sheet-body {
+      padding: 10px 12px 14px;
+      font-size: 13px;
+      color: #3a3a3c;
+      line-height: 1.5;
+      max-height: calc(76vh - 44px);
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+    .stage-body .label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+      display: inline-block;
+    }
+
+    .approve-wrap {
+      border: 1px solid #e9edf4;
+      border-radius: 12px;
+      background: #fbfcff;
+      padding: 8px 10px;
+      margin-top: 0;
+      box-shadow: none;
+      max-width: 100%;
+    }
+    .approve-wrap .stage-card {
+      margin-top: 0;
+      max-width: 100%;
+      padding: 5px 8px;
+    }
+    .approve-mini {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 7px;
+      min-height: 28px;
+    }
+    .approve-wrap .stage-preview { max-width: 150px; }
+    .approve-guide {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #5b667c;
+      line-height: 1.45;
+      background: #f4f7fc;
+      border: 1px solid #e3eaf6;
+      border-radius: 10px;
+      padding: 7px 8px;
+    }
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      margin-top: 8px;
+    }
+    .actions.secondary {
+      margin-top: 4px;
+      padding-top: 4px;
+      border-top: 1px dashed #e8edf6;
+    }
+    .btn {
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      min-height: 26px;
+      padding: 3px 7px;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      color: #fff;
+      background: #b7c1d3;
+      transition: transform 0.08s ease, opacity 0.12s ease, background-color 0.12s ease;
+      box-shadow: none;
+    }
+    .btn:hover { opacity: 0.94; }
+    .btn:active { transform: translateY(1px); }
+    .btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
+    }
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+      filter: grayscale(0.12);
+    }
+    .btn.ok {
+      background: #007aff;
+      border-color: #0074f0;
+    }
+    .btn.bad {
+      background: #8f96a3;
+      border-color: #868d99;
+    }
+    .btn.warn {
+      background: #f4f5f8;
+      border-color: #e1e5ee;
+      color: #4b5568;
+    }
+    .approve-card-wrap .msg-meta { margin-bottom: 1px; }
+    .approve-card-wrap .bubble {
+      background: #fff !important;
+      border: 1px solid var(--line-strong) !important;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-1);
+      padding: 9px 10px !important;
+      display: block;
+      width: 100%;
+    }
+
+    .decision-mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.24);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 90;
+      padding: 14px;
+    }
+    .decision-mask.open { display: flex; }
+    .decision-modal {
+      width: min(360px, 92vw);
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #e6eaf3;
+      box-shadow: 0 12px 28px rgba(16, 24, 40, 0.16);
+      overflow: hidden;
+    }
+    .decision-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid #edf1f7;
+      font-size: 13px;
+      font-weight: 700;
+      color: #39465d;
+      background: #fafbfe;
+    }
+    .decision-body {
+      padding: 10px 12px 12px;
+    }
+    .decision-body textarea,
+    .decision-body input {
+      width: 100%;
+      border: 1px solid #d9dee7;
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      padding: 9px 10px;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+    .decision-body textarea {
+      min-height: 70px;
+      resize: vertical;
+    }
+    .decision-foot {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .decision-btn {
+      border: 1px solid #dce3f0;
+      border-radius: 10px;
+      min-height: 34px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #fff;
+      color: #4a5568;
+    }
+    .decision-btn.primary {
+      background: #007aff;
+      border-color: #0074f0;
+      color: #fff;
+    }
+
+    .composer-wrap {
+      border-top: 1px solid var(--line);
+      background: rgba(250, 250, 252, 0.86);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      overflow: hidden;
+      position: relative;
+      z-index: 24;
+      pointer-events: auto;
+    }
+    .quote-hint-strip {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: #3a4a5c;
+      border-bottom: 1px solid #e3ebf7;
+      background: linear-gradient(180deg, #f0f6ff 0%, #fafbff 100%);
+      position: relative;
+      z-index: 26;
+      pointer-events: auto;
+    }
+    .quote-hint-btn {
+      border: 1px solid #8eb9ff;
+      background: #fff;
+      color: #0b5fff;
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .quote-hint-dismiss {
+      border: 1px solid #d7dfef;
+      background: #fff;
+      color: #66758f;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 999px;
+      padding: 4px 12px;
+      min-height: 28px;
+      cursor: pointer;
+      position: relative;
+      z-index: 27;
+      pointer-events: auto;
+    }
+    .pending-quote-bar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      row-gap: 4px;
+      padding: 6px 10px;
+      font-size: 12px;
+      border-bottom: 1px solid var(--line);
+      background: #eef4ff;
+      color: #2c3e50;
+    }
+    .quote-tag-meta {
+      font-size: 11px;
+      color: #678;
+      flex-shrink: 0;
+    }
+    .quote-tag {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .quote-business-tip {
+      flex: 0 0 100%;
+      width: 100%;
+      font-size: 11px;
+      color: #5b7294;
+      margin-top: 0;
+      line-height: 1.35;
+      white-space: normal;
+      word-break: break-word;
+    }
+    .quote-tag-x {
+      border: none;
+      background: transparent;
+      color: #007aff;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .composer {
+      padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      box-shadow: none;
+    }
+    .composer input {
+      border: 1px solid #d5dce7;
+      border-radius: 999px;
+      min-height: 40px;
+      padding: 9px 12px;
+      outline: none;
+      font-size: 14px;
+      color: var(--text);
+      background: #fff;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .composer input:focus {
+      border-color: #80b8ff;
+      box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.14);
+    }
+    .send {
+      border: none;
+      border-radius: 999px;
+      min-height: 40px;
+      padding: 0 15px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      background: #007aff;
+      box-shadow: none;
+      cursor: pointer;
+      transition: transform 0.08s ease, opacity 0.12s ease;
+    }
+    .send:hover { opacity: 0.94; }
+    .send:active { transform: translateY(1px); }
+    .send:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(95, 151, 241, 0.2), 0 1px 2px rgba(32, 45, 68, 0.18);
+    }
+    .typing-bubble {
+      width: auto;
+      max-width: none;
+      min-width: 66px;
+      padding: 8px 10px;
+      border-radius: 16px;
+      background: #f2f2f7;
+      border-color: #e1e1e6;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+    .typing-bubble i {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #a9b0bf;
+      animation: pulse 0.95s infinite ease-in-out;
+    }
+    .typing-bubble i:nth-child(2) { animation-delay: 0.12s; }
+    .typing-bubble i:nth-child(3) { animation-delay: 0.24s; }
+    @keyframes pulse {
+      0%, 80%, 100% { transform: scale(0.75); opacity: 0.55; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+
+    @media (max-width: 430px) {
+      .phone {
+        border-left: none;
+        border-right: none;
+        box-shadow: none;
+      }
+      .bubble { max-width: 86%; }
+    }
+    @media (hover: none) {
+      .bubble .quote-action-btn {
+        opacity: 1;
+        pointer-events: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="topbar">
+      <span>智能客服</span>
+      <span id="runTag" class="run-tag">run_id: -</span>
+    </div>
+    <div class="quick-faq">
+      <div class="quick-faq-head">
+        <span>热门问题知识库</span>
+        <span class="quick-faq-meta">
+          <span id="intentTip">intent: -</span>
+          <span id="demoModeTag" class="mode-tag">Demo Mock: -</span>
+        </span>
+      </div>
+      <div id="quickFaqList" class="quick-faq-list"></div>
+    </div>
+    <div id="msgs" class="chat"></div>
+    <div class="composer-wrap">
+      <div id="quoteHintStrip" class="quote-hint-strip" hidden></div>
+      <div id="pendingQuoteBar" class="pending-quote-bar" hidden></div>
+      <div class="composer">
+        <input id="queryInput" placeholder="输入问题，例如：什么时候发货 / 退款流程 / 这款商品参数" />
+        <button id="sendBtn" class="send">发送</button>
+      </div>
+    </div>
+  </div>
+  <div id="stageSheetMask" class="stage-sheet-mask">
+    <div class="stage-sheet">
+      <div class="stage-sheet-head">
+        <span id="stageSheetTitle">阶段详情</span>
+        <button id="stageSheetClose" class="stage-sheet-close" type="button">关闭</button>
+      </div>
+      <div id="stageSheetBody" class="stage-sheet-body"></div>
+    </div>
+  </div>
+  <div id="decisionMask" class="decision-mask">
+    <div class="decision-modal">
+      <div class="decision-head">
+        <span id="decisionTitle">补充判定信息</span>
+        <button id="decisionClose" class="stage-sheet-close" type="button">关闭</button>
+      </div>
+      <div class="decision-body">
+        <textarea id="decisionReasonModal" placeholder="请输入判定理由（必填）"></textarea>
+        <input id="decisionEvidenceModal" placeholder="补充证据（可选）" />
+        <div class="decision-foot">
+          <button id="decisionCancel" class="decision-btn" type="button">取消</button>
+          <button id="decisionConfirm" class="decision-btn primary" type="button">确认提交</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      conversationId: "demo_ui_" + Math.random().toString(36).slice(2, 10),
+      runId: "",
+      latest: null,
+      lastTraceLen: 0,
+      busy: false,
+      pendingDecision: "",
+      lastUserQuery: "",
+      feedbackLocked: false,
+      escalateShownFor: "",
+      pendingQuote: null,
+      quoteSeq: 0,
+      quoteHintTimer: null
+    };
+    const QUOTE_HINT_AUTO_HIDE_MS = 30000;
+
+    const $ = {
+      msgs: document.getElementById("msgs"),
+      runTag: document.getElementById("runTag"),
+      intentTip: document.getElementById("intentTip"),
+      demoModeTag: document.getElementById("demoModeTag"),
+      quickFaqList: document.getElementById("quickFaqList"),
+      queryInput: document.getElementById("queryInput"),
+      sendBtn: document.getElementById("sendBtn"),
+      quoteHintStrip: document.getElementById("quoteHintStrip"),
+      pendingQuoteBar: document.getElementById("pendingQuoteBar"),
+      stageSheetMask: document.getElementById("stageSheetMask"),
+      stageSheetTitle: document.getElementById("stageSheetTitle"),
+      stageSheetBody: document.getElementById("stageSheetBody"),
+      stageSheetClose: document.getElementById("stageSheetClose"),
+      decisionMask: document.getElementById("decisionMask"),
+      decisionTitle: document.getElementById("decisionTitle"),
+      decisionClose: document.getElementById("decisionClose"),
+      decisionCancel: document.getElementById("decisionCancel"),
+      decisionConfirm: document.getElementById("decisionConfirm"),
+      decisionReasonModal: document.getElementById("decisionReasonModal"),
+      decisionEvidenceModal: document.getElementById("decisionEvidenceModal")
+    };
+    function openStageSheet(title, content) {
+      $.stageSheetTitle.textContent = title || "阶段详情";
+      $.stageSheetBody.innerHTML = String(content || "").replace(/\n/g, "<br>");
+      $.stageSheetMask.classList.add("open");
+    }
+
+    function closeStageSheet() {
+      $.stageSheetMask.classList.remove("open");
+    }
+
+    function openDecisionModal(decision) {
+      state.pendingDecision = decision || "";
+      const titleMap = {
+        reject: "拒绝并结束",
+        rewind_facts: "回退到 facts",
+        rewind_policy: "回退到 policy"
+      };
+      $.decisionTitle.textContent = titleMap[decision] ? `提交${titleMap[decision]}` : "补充判定信息";
+      $.decisionReasonModal.value = "";
+      $.decisionEvidenceModal.value = "";
+      $.decisionMask.classList.add("open");
+      $.decisionReasonModal.focus();
+    }
+
+    function closeDecisionModal() {
+      $.decisionMask.classList.remove("open");
+      state.pendingDecision = "";
+    }
+
+    async function confirmDecisionModal() {
+      const decision = state.pendingDecision;
+      if (!decision) return;
+      const reason = ($.decisionReasonModal.value || "").trim();
+      const evidence = ($.decisionEvidenceModal.value || "").trim();
+      if (!reason) {
+        return appendMsg("agent", "请先填写判定理由后再提交。");
+      }
+      closeDecisionModal();
+      await submitDecision(decision, { reason, evidence, skip_modal: true });
+    }
+
+
+    function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+    const FAQ_PRESETS = [
+      "修改收货地址",
+      "什么时候发货",
+      "在哪里查看我购买的东西",
+      "退款流程怎么走",
+      "商品参数和价格",
+      "商品破损，要求退款"
+    ];
+
+    function isComplexAftersalesQuery(text) {
+      const t = String(text || "").toLowerCase();
+      const markers = [
+        "复杂售后", "工单升级", "人工审核", "仲裁", "高额退款",
+        "损坏", "破损", "质量", "投诉", "纠纷",
+        "refund", "return", "dispute", "escalate"
+      ];
+      const hasRefund = ["退款", "退货", "refund", "return"].some((k) => t.includes(k));
+      const hasDispute = ["损坏", "破损", "质量", "投诉", "纠纷", "dispute"].some((k) => t.includes(k));
+      if (hasRefund && hasDispute) return true;
+      return markers.some((k) => t.includes(k));
+    }
+
+    function shouldReuseRunForQuery(text) {
+      if (!state.runId) return false;
+      const latest = state.latest || {};
+      const route = String(latest.route_target || "");
+      const status = String(latest.status || "");
+      const pendingAction = String(((latest.pending_action || {}).action_name) || "");
+      const inComplexFlow =
+        route === "aftersales" &&
+        status === "NEED_HUMAN" &&
+        Boolean(pendingAction) &&
+        pendingAction !== "handoff_human";
+      return inComplexFlow || isComplexAftersalesQuery(text);
+    }
+
+    const ACTION_LABELS = {
+      approval_submit_mcp: "提交风控审批单",
+      refund_submit_mcp: "执行退款",
+      ticket_upgrade_mcp: "升级人工工单",
+      handoff_human: "转人工处理"
+    };
+    const ACTION_REASON_LABELS = {
+      damage_claim_need_risk_review: "破损争议需先完成风控复核",
+      post_risk_approval_refund: "风控通过后执行退款",
+      manual_required: "规则判定需人工复核",
+      policy_eligible: "规则判定可退款",
+      high_risk_manual_review: "高风险动作需人工审批"
+    };
+
+    function actionDisplayName(actionName, actionArgs = {}) {
+      const name = String(actionName || "").trim();
+      if (!name) return "待审批动作";
+      const title = String((actionArgs || {}).business_title || "").trim();
+      if (title) return title;
+      return ACTION_LABELS[name] || name.replaceAll("_", " ");
+    }
+
+    function actionReadableLines(actionName, actionArgs = {}) {
+      const args = (actionArgs && typeof actionArgs === "object") ? actionArgs : {};
+      const lines = [];
+      const desc = String(args.business_desc || "").trim();
+      const risk = String(args.risk_tip || "").trim();
+      if (desc) lines.push(`动作说明：${desc}`);
+      if (risk) lines.push(`风控提示：${risk}`);
+      if (typeof args.amount === "number") lines.push(`执行金额：${args.amount} 元`);
+      if (args.priority) lines.push(`工单优先级：${args.priority}`);
+      return lines;
+    }
+
+    function actionParamLines(actionName, actionArgs = {}) {
+      const args = (actionArgs && typeof actionArgs === "object") ? actionArgs : {};
+      const lines = [];
+      const reasonCode = String(args.reason || "").trim();
+      if (reasonCode) {
+        const reasonText = ACTION_REASON_LABELS[reasonCode] || reasonCode;
+        lines.push(`业务原因：${reasonText}`);
+      }
+      if (typeof args.amount === "number") lines.push(`退款金额：${args.amount} 元`);
+      if (args.priority) lines.push(`工单优先级：${args.priority}`);
+      return lines;
+    }
+
+    function renderQuickFaq() {
+      $.quickFaqList.innerHTML = "";
+      FAQ_PRESETS.forEach((q) => {
+        const btn = document.createElement("button");
+        btn.className = "faq-chip";
+        btn.type = "button";
+        btn.textContent = q;
+        btn.addEventListener("click", () => {
+          if (state.busy) return;
+          $.queryInput.value = q;
+          submitUserQuery();
+        });
+        $.quickFaqList.appendChild(btn);
+      });
+    }
+
+    function createMsg(role) {
+      const row = document.createElement("div");
+      row.className = "msg " + role;
+      const avatar = document.createElement("div");
+      avatar.className = "avatar";
+      avatar.textContent = role === "user" ? "客" : (role === "ai" ? "AI" : "服");
+      const main = document.createElement("div");
+      main.className = "msg-main";
+      const meta = document.createElement("div");
+      meta.className = "msg-meta";
+      meta.textContent = role === "user" ? "用户" : (role === "ai" ? "AI 助手" : "客服");
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      row.appendChild(avatar);
+      main.appendChild(meta);
+      main.appendChild(bubble);
+      row.appendChild(main);
+      $.msgs.appendChild(row);
+      $.msgs.scrollTop = $.msgs.scrollHeight;
+      return bubble;
+    }
+
+    function compactText(text, maxChars = 220) {
+      const t = String(text || "").replace(/\s+/g, " ").trim();
+      if (!t) return "";
+      return t.length > maxChars ? (t.slice(0, maxChars) + "…") : t;
+    }
+
+    function quoteRoleLabel(role) {
+      if (role === "user") return "用户";
+      if (role === "agent") return "客服";
+      return "AI";
+    }
+
+    function setPendingQuote(quote) {
+      if (!quote || !String(quote.preview || "").trim()) return;
+      state.pendingQuote = {
+        id: String(quote.id || `q_${Date.now()}_${state.quoteSeq++}`),
+        role: String(quote.role || "ai"),
+        run_id: String(quote.run_id || "").trim(),
+        preview: compactText(quote.preview || "", 240),
+      };
+      $.quoteHintStrip.hidden = true;
+      renderPendingQuoteBar();
+      $.queryInput.focus();
+    }
+
+    function setBubbleQuoteMeta(bubble, meta = {}) {
+      if (!bubble) return;
+      const roleType = String(meta.role || "ai");
+      const quoteEnabled = Boolean(meta.quoteEnabled);
+      if (!quoteEnabled || roleType !== "ai") {
+        bubble.classList.remove("bubble-quoteable");
+        bubble.removeAttribute("title");
+        bubble.dataset.quotePreview = "";
+        bubble.dataset.role = roleType;
+        bubble.dataset.runId = String(meta.runId || "").trim();
+        const btnOld = bubble.querySelector(".quote-action-btn");
+        if (btnOld) btnOld.remove();
+        return;
+      }
+      const preview = compactText(meta.quotePreview || bubble.textContent || "", 260);
+      if (!preview) return;
+      bubble.dataset.quotePreview = preview;
+      bubble.dataset.role = roleType;
+      bubble.dataset.runId = String(meta.runId || "").trim();
+      bubble.classList.add("bubble-quoteable");
+      bubble.title = "可引用追问";
+      if (!bubble.querySelector(".quote-action-btn")) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "quote-action-btn";
+        btn.textContent = "引用";
+        btn.title = "业务提示：引用后会携带该条内容作为追问上下文";
+        btn.addEventListener("pointerdown", (e) => e.stopPropagation());
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setPendingQuote({
+            role: bubble.dataset.role || "ai",
+            run_id: bubble.dataset.runId || "",
+            preview: bubble.dataset.quotePreview || "",
+          });
+        });
+        bubble.appendChild(btn);
+      }
+      if (bubble.dataset.quoteBound === "1") return;
+      bubble.dataset.quoteBound = "1";
+      let pressTimer = null;
+      let moved = false;
+      const clearPress = () => {
+        if (pressTimer) {
+          clearTimeout(pressTimer);
+          pressTimer = null;
+        }
+      };
+      const triggerQuote = () => {
+        clearPress();
+        setPendingQuote({
+          role: bubble.dataset.role || "ai",
+          run_id: bubble.dataset.runId || "",
+          preview: bubble.dataset.quotePreview || "",
+        });
+      };
+      bubble.addEventListener("pointerdown", () => {
+        moved = false;
+        clearPress();
+        pressTimer = setTimeout(() => {
+          if (!moved) triggerQuote();
+        }, 420);
+      });
+      bubble.addEventListener("pointermove", () => { moved = true; clearPress(); });
+      bubble.addEventListener("pointerup", clearPress);
+      bubble.addEventListener("pointercancel", clearPress);
+      bubble.addEventListener("pointerleave", clearPress);
+      bubble.addEventListener("contextmenu", (e) => e.preventDefault());
+    }
+
+    function appendMsgEx(role, text, opts = {}) {
+      const bubble = createMsg(role);
+      const quote = (opts.quote && typeof opts.quote === "object") ? opts.quote : null;
+      const bodyText = String(text || "");
+      if (quote && String(quote.preview || "").trim()) {
+        const qBlock = document.createElement("div");
+        qBlock.className = "msg-quote-block";
+        const qTitle = document.createElement("div");
+        qTitle.className = "msg-quote-title";
+        qTitle.textContent = `引用${quoteRoleLabel(String(quote.role || "ai"))}${quote.run_id ? ` · ${quote.run_id}` : ""}`;
+        const qText = document.createElement("div");
+        qText.className = "msg-quote-text";
+        qText.textContent = String(quote.preview || "");
+        qBlock.appendChild(qTitle);
+        qBlock.appendChild(qText);
+        bubble.appendChild(qBlock);
+        const body = document.createElement("div");
+        body.textContent = bodyText;
+        bubble.appendChild(body);
+      } else {
+        bubble.textContent = bodyText;
+      }
+      setBubbleQuoteMeta(bubble, {
+        role,
+        runId: String(opts.runId || ""),
+        quotePreview: String(opts.quotePreview || bodyText || ""),
+        quoteEnabled: Boolean(opts.quoteEnabled) && role === "ai",
+      });
+      return bubble;
+    }
+
+    function appendMsg(role, text) {
+      return appendMsgEx(role, text, {});
+    }
+
+    function appendFeedbackBar(parentBubble) {
+      const foot = document.createElement("div");
+      foot.className = "feedback-actions";
+      parentBubble.appendChild(foot);
+      return foot;
+    }
+
+    function renderPendingQuoteBar() {
+      const bar = $.pendingQuoteBar;
+      if (!bar) return;
+      if (!state.pendingQuote) {
+        bar.hidden = true;
+        bar.innerHTML = "";
+        return;
+      }
+      bar.hidden = false;
+      bar.innerHTML = "";
+      const meta = document.createElement("span");
+      meta.className = "quote-tag-meta";
+      meta.textContent = `引用${quoteRoleLabel(String(state.pendingQuote.role || "ai"))}`;
+      if (state.pendingQuote.run_id) {
+        meta.textContent += ` · ${state.pendingQuote.run_id}`;
+      }
+      const tag = document.createElement("span");
+      tag.className = "quote-tag";
+      const pv = String(state.pendingQuote.preview || state.pendingQuote.run_id || "");
+      tag.textContent = "引用：" + (pv.length > 100 ? pv.slice(0, 100) + "…" : pv);
+      const x = document.createElement("button");
+      x.type = "button";
+      x.className = "quote-tag-x";
+      x.textContent = "取消引用";
+      x.addEventListener("click", () => {
+        state.pendingQuote = null;
+        renderPendingQuoteBar();
+      });
+      bar.appendChild(meta);
+      bar.appendChild(tag);
+      bar.appendChild(x);
+      const tip = document.createElement("div");
+      tip.className = "quote-business-tip";
+      tip.textContent = "业务提示：引用内容会参与本次追问上下文，若引用了已解决 run 还会计入复开分析。";
+      bar.appendChild(tip);
+    }
+
+    function hideQuoteFollowUpHint() {
+      const strip = $.quoteHintStrip;
+      if (!strip) return;
+      if (state.quoteHintTimer) {
+        clearTimeout(state.quoteHintTimer);
+        state.quoteHintTimer = null;
+      }
+      strip.hidden = true;
+      strip.innerHTML = "";
+    }
+
+    function scheduleQuoteHintAutoHide() {
+      if (state.quoteHintTimer) {
+        clearTimeout(state.quoteHintTimer);
+      }
+      state.quoteHintTimer = setTimeout(() => {
+        hideQuoteFollowUpHint();
+      }, QUOTE_HINT_AUTO_HIDE_MS);
+    }
+
+    function showQuoteFollowUpHint(runId, previewText) {
+      const strip = $.quoteHintStrip;
+      if (!strip || !runId) return;
+      scheduleQuoteHintAutoHide();
+      strip.hidden = false;
+      strip.innerHTML = "";
+      const span = document.createElement("span");
+      span.className = "quote-hint-text";
+      span.textContent = "该轮已标记解决，如需基于上文继续提问，可使用引用追问：";
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "quote-hint-btn";
+      btn.textContent = "引用该轮";
+      btn.addEventListener("click", () => {
+        setPendingQuote({
+          role: "ai",
+          run_id: runId,
+          preview: String(previewText || "").slice(0, 220),
+        });
+      });
+      const dismiss = document.createElement("button");
+      dismiss.type = "button";
+      dismiss.className = "quote-hint-dismiss";
+      dismiss.textContent = "关闭";
+      dismiss.addEventListener("click", () => {
+        hideQuoteFollowUpHint();
+      });
+      strip.appendChild(span);
+      strip.appendChild(btn);
+      strip.appendChild(dismiss);
+      strip.addEventListener("pointerenter", scheduleQuoteHintAutoHide, { once: true });
+    }
+
+    function shouldShowFeedback(resp) {
+      if (!resp || resp.status === "NEED_HUMAN") return false;
+      const debug = resp.debug || {};
+      const requestFeedback = String(debug.request_user_feedback || "").trim().toLowerCase();
+      const feedbackTerminal = Boolean(debug.feedback_terminal);
+      if (feedbackTerminal || ["resolved", "satisfied", "solved", "已解决", "满意"].includes(requestFeedback)) {
+        return false;
+      }
+      const rt = String(resp.route_target || "");
+      return ["faq", "aftersales", "product_info"].includes(rt);
+    }
+
+    async function submitSatisfaction(feedback, ctx = {}) {
+      if (state.busy || state.feedbackLocked) return;
+      const feedbackQuery = String(ctx.query || state.lastUserQuery || "").trim();
+      if (!feedbackQuery) return;
+      const label = feedback === "resolved" ? "已解决" : "未解决";
+      appendMsgEx("user", `反馈：${label}`, { runId: String(ctx.run_id || state.runId || "") });
+      state.feedbackLocked = true;
+      setBusy(true);
+      const typingRow = appendTyping();
+      const feedbackEventId = `fb_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      try {
+        const payload = {
+          conversation_id: state.conversationId,
+          user_id: "u_demo",
+          tenant_id: "demo",
+          actor_type: "agent",
+          channel: "web",
+          query: feedbackQuery,
+          history: [],
+          user_feedback: feedback,
+          human_decision: {
+            decision: feedback,
+            reason: feedback === "resolved" ? "用户确认问题已解决" : "用户反馈未解决，申请人工服务",
+            source_query: feedbackQuery,
+            source_route: String(ctx.route_target || ""),
+            source_run_id: String(ctx.run_id || ""),
+            source_status: String(ctx.status || ""),
+            feedback_ts: new Date().toISOString(),
+            feedback_event_id: feedbackEventId,
+          }
+        };
+        if (String(ctx.run_id || "").trim()) {
+          payload.run_id = String(ctx.run_id);
+        }
+        const resp = await callChat({
+          ...payload
+        });
+        typingRow.remove();
+        await renderResponse(resp);
+        if (feedback === "resolved") {
+          showQuoteFollowUpHint(String(ctx.run_id || ""), String(ctx.query || ""));
+        }
+        if (feedback === "unresolved" && resp.status === "NEED_HUMAN") {
+          await sleep(500);
+          appendMsg("agent", "您好，我是人工客服，很高兴为您服务。");
+        }
+      } catch (e) {
+        typingRow.remove();
+        appendMsg("agent", "反馈提交失败：" + (e && e.message ? e.message : String(e)));
+      } finally {
+        setBusy(false);
+        state.feedbackLocked = false;
+      }
+    }
+
+    function appendFeedbackButtons(foot, resp) {
+      const ctx = {
+        query: String((resp && resp.debug && resp.debug.request_query) || state.lastUserQuery || ""),
+        route_target: String((resp && resp.route_target) || ""),
+        run_id: String((resp && resp.run_id) || ""),
+        status: String((resp && resp.status) || ""),
+      };
+      const feedbackKey = `${ctx.run_id || "no_run"}::${ctx.query || "no_query"}`;
+      const okBtn = document.createElement("button");
+      okBtn.type = "button";
+      okBtn.className = "feedback-btn";
+      okBtn.innerHTML = `<span class="fb-icon">✓</span><span>解决</span>`;
+      const badBtn = document.createElement("button");
+      badBtn.type = "button";
+      badBtn.className = "feedback-btn primary";
+      badBtn.innerHTML = `<span class="fb-icon">✕</span><span>未解决</span>`;
+      const lockBtns = (activeBtn) => {
+        [okBtn, badBtn].forEach((btn) => {
+          btn.disabled = true;
+          btn.classList.remove("active");
+        });
+        if (activeBtn) activeBtn.classList.add("active");
+      };
+      okBtn.addEventListener("click", () => {
+        lockBtns(okBtn);
+        submitSatisfaction("resolved", ctx);
+      });
+      badBtn.addEventListener("click", () => {
+        lockBtns(badBtn);
+        appendEscalateCard(ctx, feedbackKey);
+      });
+      foot.appendChild(okBtn);
+      foot.appendChild(badBtn);
+    }
+
+    function appendEscalateCard(ctx, feedbackKey = "") {
+      if (feedbackKey && state.escalateShownFor === feedbackKey) return;
+      if (feedbackKey) state.escalateShownFor = feedbackKey;
+      const bubble = createMsg("ai");
+      bubble.classList.add("bubble-rich", "escalate-bubble");
+      bubble.innerHTML = `<div class="escalate-card"><div class="escalate-title">问题未解决？点击求助人工服务。<br>预计 30 秒内接入人工客服继续处理。</div><button type="button" class="escalate-link">人工服务</button></div>`;
+      setBubbleQuoteMeta(bubble, {
+        role: "ai",
+        runId: String(ctx.run_id || ""),
+        quotePreview: "问题未解决？点击求助人工服务。预计 30 秒内接入人工客服继续处理。",
+        quoteEnabled: false,
+      });
+      const escalateBtn = bubble.querySelector(".escalate-link");
+      escalateBtn?.addEventListener("click", () => {
+        if (escalateBtn.disabled) return;
+        escalateBtn.disabled = true;
+        escalateBtn.textContent = "正在连接人工服务...";
+        submitSatisfaction("unresolved", ctx);
+      });
+      $.msgs.scrollTop = $.msgs.scrollHeight;
+    }
+
+    function appendTyping() {
+      const bubble = createMsg("ai");
+      bubble.classList.add("typing-bubble");
+      bubble.innerHTML = "<i></i><i></i><i></i>";
+      bubble.classList.remove("bubble-quoteable");
+      return bubble.closest(".msg");
+    }
+
+    function setBusy(v) {
+      state.busy = !!v;
+      $.sendBtn.disabled = state.busy;
+      $.queryInput.disabled = state.busy;
+      $.sendBtn.textContent = state.busy ? "发送中..." : "发送";
+    }
+
+    async function appendStream(role, text, speed = 5, opts = {}) {
+      const bubble = createMsg(role);
+      for (const ch of text) {
+        bubble.textContent += ch;
+        if (ch === "\n") $.msgs.scrollTop = $.msgs.scrollHeight;
+        await sleep(speed);
+      }
+      $.msgs.scrollTop = $.msgs.scrollHeight;
+      setBubbleQuoteMeta(bubble, {
+        role,
+        runId: String(opts.runId || ""),
+        quotePreview: String(opts.quotePreview || text || ""),
+        quoteEnabled: Boolean(opts.quoteEnabled),
+      });
+      return bubble;
+    }
+
+    async function callChat(payload) {
+      const res = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        const t = await res.text();
+        throw new Error("HTTP " + res.status + ": " + t);
+      }
+      return await res.json();
+    }
+
+    function stageData(resp) {
+      const summary = ((resp.debug || {}).run_step_summary) || {};
+      const nodes = ((summary.current_path || {}).nodes) || ((resp.debug || {}).node_trace) || [];
+      const incremental = Array.isArray(nodes) ? nodes : [];
+      const agent = (resp.debug && resp.debug.aftersales_agent) || {};
+      const tools = agent.tool_result || {};
+      const skills = agent.skill_result || {};
+      const order = tools.order_query_tool || {};
+      const policy = skills.policy || {};
+      const plan = skills.plan || {};
+
+      const hasFacts = incremental.includes("aftersales_facts");
+      const hasPolicy = incremental.includes("aftersales_policy");
+      const hasAction = incremental.includes("aftersales_action") || resp.status === "NEED_HUMAN";
+
+      const factsSummary = [
+        order.order_id ? `订单号：${order.order_id}` : "",
+        typeof order.amount === "number" ? `订单金额：${order.amount} 元` : "",
+        typeof order.delivered === "boolean" ? `签收状态：${order.delivered ? "已签收" : "未签收"}` : "",
+        typeof order.days_since_delivery === "number" ? `签收后天数：${order.days_since_delivery} 天` : ""
+      ].filter(Boolean).join("\n") || "已读取订单事实。";
+
+      const policySummary = [
+        policy.eligible === true ? "规则判定：满足自动处理条件" : "",
+        policy.eligible === false ? "规则判定：不满足自动处理条件" : "",
+        policy.risk_level ? `风险等级：${policy.risk_level}` : "",
+        typeof policy.confidence === "number" ? `判定置信度：${policy.confidence}` : "",
+        Array.isArray(policy.reasons) && policy.reasons.length ? `依据条款：${policy.reasons.join("，")}` : "",
+        plan.eta ? `预计处理时效：${plan.eta}` : ""
+      ].filter(Boolean).join("\n") || "已完成规则判定与方案生成。";
+
+      const actionSummary = [
+        (resp.pending_action || {}).action_name
+          ? `待执行动作：${actionDisplayName((resp.pending_action || {}).action_name, (resp.pending_action || {}).action_args || {})}`
+          : "",
+        ...actionParamLines((resp.pending_action || {}).action_name, (resp.pending_action || {}).action_args || {}),
+        ...actionReadableLines((resp.pending_action || {}).action_name, (resp.pending_action || {}).action_args || {}),
+        (resp.human_gate_card || {}).reason ? `风险原因：${resp.human_gate_card.reason}` : "",
+        (resp.status === "NEED_HUMAN" && String(((resp.pending_action || {}).action_name) || "") === "handoff_human")
+          ? "当前状态：等待客服介入"
+          : (resp.status === "NEED_HUMAN" ? "当前状态：等待客服审批" : "当前状态：已完成本轮动作")
+      ].filter(Boolean).join("\n");
+
+      return { nodes, hasFacts, hasPolicy, hasAction, factsSummary, policySummary, actionSummary };
+    }
+
+    function appendStageCard(parentBubble, title, content) {
+      const card = document.createElement("div");
+      card.className = "stage-card";
+      const raw = String(content || "");
+      const preview = raw.split("\n").map((x) => x.trim()).filter(Boolean).slice(0, 1).join(" · ") || "点击查看阶段过程";
+      card.innerHTML = `
+        <div class="stage-mini">
+          <div class="stage-name">${title}</div>
+          <div class="stage-preview">${preview}</div>
+          <button class="stage-link" type="button">展开</button>
+        </div>
+      `;
+      card.querySelector(".stage-link")?.addEventListener("click", () => openStageSheet(title, raw));
+      parentBubble.appendChild(card);
+    }
+
+    function removePendingApproveCard() {
+      const old = document.querySelector(".approve-card-wrap");
+      if (old) old.remove();
+    }
+
+    function addApproveCard(resp) {
+      removePendingApproveCard();
+      if (resp.status !== "NEED_HUMAN" || !(resp.pending_action || {}).action_name) return;
+      const bubble = createMsg("agent");
+      bubble.classList.add("bubble-rich", "approve-bubble");
+      const row = bubble.closest(".msg");
+      if (!row) return;
+      row.classList.add("approve-card-wrap");
+      const actionName = (resp.pending_action && resp.pending_action.action_name) ? String(resp.pending_action.action_name) : "待审批动作";
+      const gateCard = (resp && resp.debug && resp.debug.human_gate_card) || {};
+      const reason = String(gateCard.reason || "需人工确认后执行");
+      const actionArgs = (resp.pending_action && resp.pending_action.action_args) ? resp.pending_action.action_args : {};
+      const prettyAction = actionDisplayName(actionName, actionArgs);
+      const actionDetails = [
+        ...actionParamLines(actionName, actionArgs),
+        ...actionReadableLines(actionName, actionArgs),
+      ];
+      const guideText = actionDetails.length
+        ? actionDetails.slice(0, 2).join("；")
+        : "建议先完成当前审批动作；通过后系统会自动推进下一步，拒绝则转人工兜底。";
+      const answerRaw = [
+        "检测到高风险操作，需人工确认后才会执行。",
+        `- 风险原因: ${reason}`,
+        `- 待执行动作: ${prettyAction}`,
+        ...actionDetails.map((x) => `- ${x}`),
+        `- 用户请求: ${String((resp && resp.debug && resp.debug.request_query) || "")}`,
+      ].join("\n");
+      setBubbleQuoteMeta(bubble, {
+        role: "agent",
+        runId: String(resp.run_id || ""),
+        quotePreview: answerRaw,
+        quoteEnabled: false,
+      });
+      const answerPreview = `${prettyAction} · ${reason}`;
+      bubble.innerHTML = `<div class="approve-wrap"><div class="stage-card"><div class="stage-mini"><div class="stage-name">高风险</div><div class="stage-preview">${prettyAction} · ${answerPreview}</div><button class="stage-link approve-link" type="button">展开</button></div></div><div class="approve-guide">业务引导：${guideText}</div><div class="actions"><button class="btn ok" data-decision="approve">通过并继续</button><button class="btn bad" data-decision="reject">拒绝并结束</button></div><div class="actions secondary"><button class="btn warn" data-decision="rewind_facts">回退到 facts</button><button class="btn warn" data-decision="rewind_policy">回退到 policy</button></div></div>`;
+      row.querySelector(".approve-link")?.addEventListener("click", () => openStageSheet("高风险操作详情", answerRaw));
+      row.querySelectorAll("[data-decision]").forEach((btn) => {
+        btn.addEventListener("click", () => submitDecision(btn.dataset.decision));
+      });
+      $.msgs.scrollTop = $.msgs.scrollHeight;
+    }
+
+    function updateHeader(resp) {
+      state.latest = resp;
+      state.runId = resp.run_id || state.runId;
+      $.runTag.textContent = "run_id: " + (state.runId || "-");
+      const isFeedback = Boolean((resp.debug || {}).request_user_feedback);
+      const sourceRoute = String((resp.debug || {}).feedback_source_route || "");
+      const shownIntent = isFeedback && sourceRoute ? sourceRoute : (resp.route_target || "-");
+      $.intentTip.textContent = "intent: " + shownIntent;
+      const enabled = Boolean((resp.debug || {}).demo_fixed_scenario_enabled);
+      $.demoModeTag.textContent = "Demo Mock: " + (enabled ? "ON" : "OFF");
+      $.demoModeTag.classList.toggle("on", enabled);
+      $.demoModeTag.classList.toggle("off", !enabled);
+    }
+
+    async function renderResponse(resp) {
+      updateHeader(resp);
+      const routeLabel = {
+        faq: "FAQ",
+        aftersales: "售后",
+        risk_query: "风险咨询",
+        product_info: "商品咨询"
+      }[resp.route_target] || "通用";
+      const pendingActionName = String(((resp.pending_action || {}).action_name) || "");
+      const needHuman = resp.status === "NEED_HUMAN";
+      const needApprovalCard = needHuman && pendingActionName && pendingActionName !== "handoff_human";
+      const isConclusionAiBubble = !needHuman && !needApprovalCard && String(resp.answer || "").trim().length > 0;
+      const topLine = resp.status === "NEED_HUMAN"
+        ? (needApprovalCard ? `${routeLabel}场景命中人工审批断点，请客服做出决策。` : `${routeLabel}场景已按规则转人工处理。`)
+        : `已完成${routeLabel}场景处理。`;
+      const answerText = String(resp.answer || "").trim();
+      const visibleText = (!needApprovalCard && answerText) ? `${topLine}\n${answerText}` : topLine;
+      const bubble = await appendStream("ai", visibleText, 4, {
+        role: "ai",
+        runId: String(resp.run_id || ""),
+        quotePreview: String(answerText || visibleText || ""),
+        quoteEnabled: isConclusionAiBubble,
+      });
+
+      const sd = stageData(resp);
+      if (sd.hasFacts) appendStageCard(bubble, "facts 阶段：事实收集", sd.factsSummary);
+      if (sd.hasPolicy) appendStageCard(bubble, "policy 阶段：规则判定", sd.policySummary);
+      if (sd.hasAction) appendStageCard(bubble, "action 阶段：动作决策", sd.actionSummary);
+      if (shouldShowFeedback(resp)) {
+        const foot = appendFeedbackBar(bubble);
+        appendFeedbackButtons(foot, resp);
+      }
+      state.lastTraceLen = Array.isArray(sd.nodes) ? sd.nodes.length : state.lastTraceLen;
+      if (needApprovalCard) {
+        addApproveCard(resp);
+      } else if (needHuman) {
+        appendMsg("agent", "问题未解决？已为你接入人工客服，请稍候。");
+      }
+      $.msgs.scrollTop = $.msgs.scrollHeight;
+    }
+
+    async function submitUserQuery() {
+      if (state.busy) return;
+      const text = ($.queryInput.value || "").trim();
+      if (!text) return;
+      hideQuoteFollowUpHint();
+      state.lastUserQuery = text;
+      appendMsgEx("user", text, {
+        runId: String(state.runId || ""),
+        quote: state.pendingQuote ? {
+          role: state.pendingQuote.role || "ai",
+          run_id: state.pendingQuote.run_id || "",
+          preview: state.pendingQuote.preview || "",
+        } : null,
+        quotePreview: text,
+      });
+      $.queryInput.value = "";
+      setBusy(true);
+      const typingRow = appendTyping();
+      try {
+        state.lastTraceLen = 0;
+        const reuseRun = shouldReuseRunForQuery(text) && !state.pendingQuote;
+        const payload = {
+          conversation_id: state.conversationId,
+          user_id: "u_demo",
+          tenant_id: "demo",
+          actor_type: "agent",
+          channel: "web",
+          query: text,
+          history: []
+        };
+        if (reuseRun) payload.run_id = state.runId;
+        if (state.pendingQuote && String(state.pendingQuote.preview || "").trim()) {
+          payload.reference_quote_text = state.pendingQuote.preview || "";
+          if (String(state.pendingQuote.run_id || "").trim()) {
+            payload.reference_run_id = state.pendingQuote.run_id;
+          }
+        }
+        const resp = await callChat(payload);
+        typingRow.remove();
+        await renderResponse(resp);
+        state.pendingQuote = null;
+        renderPendingQuoteBar();
+      } catch (e) {
+        typingRow.remove();
+        appendMsg("agent", "请求失败：" + (e && e.message ? e.message : String(e)));
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function submitDecision(decision, opts = {}) {
+      if (state.busy) return;
+      if (!state.runId) return appendMsg("agent", "当前无可继续 run_id。");
+      const latest = state.latest || {};
+      if ((latest.status || "") !== "NEED_HUMAN" || !((latest.pending_action || {}).action_name)) {
+        return appendMsg("agent", "当前不在审批断点。");
+      }
+      const reason = String(opts.reason || "").trim();
+      const evidence = String(opts.evidence || "").trim();
+      const skipModal = Boolean(opts.skip_modal);
+      if (decision !== "approve" && !skipModal) {
+        openDecisionModal(decision);
+        return;
+      }
+      if (decision !== "approve" && !reason) {
+        return appendMsg("agent", "请先填写判定理由后再提交。");
+      }
+      const label = {
+        approve: "通过并继续",
+        reject: "拒绝并结束",
+        rewind_facts: "回退到 facts",
+        rewind_policy: "回退到 policy"
+      }[decision] || decision;
+      appendMsg("agent", "客服判定：" + label + (reason ? ("\n理由：" + reason) : "") + (evidence ? ("\n证据：" + evidence) : ""));
+      setBusy(true);
+      const typingRow = appendTyping();
+      try {
+        if (decision.startsWith("rewind")) state.lastTraceLen = 0;
+        const resp = await callChat({
+          conversation_id: state.conversationId,
+          user_id: "u_demo",
+          tenant_id: "demo",
+          actor_type: "agent",
+          channel: "web",
+          query: "客服操作: " + decision,
+          history: [],
+          run_id: state.runId,
+          human_decision: {
+            decision,
+            reason,
+            evidence,
+            overrides: { human_reason: reason, human_evidence: evidence }
+          }
+        });
+        typingRow.remove();
+        await renderResponse(resp);
+      } catch (e) {
+        typingRow.remove();
+        appendMsg("agent", "判定提交失败：" + (e && e.message ? e.message : String(e)));
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    $.sendBtn.addEventListener("click", submitUserQuery);
+    $.queryInput.addEventListener("keydown", (e) => { if (e.key === "Enter") submitUserQuery(); });
+    $.queryInput.addEventListener("input", () => {
+      const hasInput = String($.queryInput.value || "").trim().length > 0;
+      if (hasInput) {
+        hideQuoteFollowUpHint();
+      }
+    });
+    $.stageSheetClose.addEventListener("click", closeStageSheet);
+    $.stageSheetMask.addEventListener("click", (e) => {
+      if (e.target === $.stageSheetMask) closeStageSheet();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closeStageSheet();
+        closeDecisionModal();
+      }
+    });
+    $.decisionClose.addEventListener("click", closeDecisionModal);
+    $.decisionCancel.addEventListener("click", closeDecisionModal);
+    $.decisionConfirm.addEventListener("click", confirmDecisionModal);
+    $.decisionMask.addEventListener("click", (e) => {
+      if (e.target === $.decisionMask) closeDecisionModal();
+    });
+    renderQuickFaq();
+    renderPendingQuoteBar();
+  </script>
+</body>
+</html>
